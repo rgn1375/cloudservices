@@ -1,4 +1,4 @@
-# Concert Ticket Booking System - Cloud Native Travel Application
+# Concert Ticket Booking System
 
 **Online Exam Cloud Services**  
 **Topik: Concerts Event Ticketing System**
