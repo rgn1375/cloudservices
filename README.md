@@ -569,10 +569,17 @@ curl http://localhost:8000/metrics | grep http_requests_total
 curl http://localhost:8000/metrics | grep db_query_duration
 ```
 ### 4.3 Lokasi Screenshot Bukti
-- ![Grafana dashboard (Beban normal)](screenshots/normal-load.png)
-- ![Grafana dashboard (Beban tinggi)](screenshots/high-load.png)  
-- ![k6 result (Beban normal)l)](screenshots/k6-output-normal.png)
-- ![k6 result (Beban tinggi)l)](screenshots/k6-output-high.png)
+#### Grafana Dashboard (Normal load)
+![Grafana dashboard (Beban normal)](screenshots/normal-load.png)
+
+#### Grafana Dashboard (High load)
+![Grafana dashboard (Beban tinggi)](screenshots/high-load.png)
+
+#### k6 results (Normal load)
+![k6 result (Beban normal)l)](screenshots/k6-output-normal.png)
+
+#### k6 results (High load)
+![k6 result (Beban tinggi)l)](screenshots/k6-output-high.png)
 
 ---
 
