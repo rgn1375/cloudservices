@@ -1,6 +1,6 @@
 # Concert Ticket Booking System - Cloud Native Travel Application
 
-**Tugas Besar Cloud Computing & Observability**  
+**Online Exam Cloud Services**  
 **Topik: Concerts Event Ticketing System**
 
 ## 📋 Executive Summary
