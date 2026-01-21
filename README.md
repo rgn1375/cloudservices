@@ -93,55 +93,6 @@ Sistem pemesanan tiket konser berbasis cloud-native yang dirancang untuk menanga
   - Metrics collection
 - **Execution**: On-demand via Docker
 
-### 1.2 Diagram Arsitektur Lengkap
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      DOCKER NETWORK (ticket-network)            │
-│                                                                 │
-│  ┌──────────────┐         ┌─────────────────┐                   │
-│  │   Frontend   │   HTTP  │    Backend      │                   │
-│  │   (Nginx)    │◀────────│   (FastAPI)     │                   │
-│  │   :80        │         │   :8000         │                   │
-│  └──────────────┘         └─────────────────┘                   │
-│         │                          │                            │
-│         │                          │ SQL                        │
-│         │                          ▼                            │
-│         │                  ┌─────────────────┐                  │
-│         │                  │    MariaDB      │                  │
-│         │                  │    :3306        │                  │
-│         │                  └─────────────────┘                  │
-│         │                          ▲                            │
-│         │                          │                            │
-│         │                  ┌───────┴─────────┐                  │
-│         │                  │ Volume: ticket-db                  │
-│         │                  └─────────────────┘                  │
-│         │                                                       │
-│         │                  ┌─────────────────┐                  │
-│         │                  │   Prometheus    │                  │
-│         │           scrape │   :9090         │                  │
-│         └─────────────────▶│  (Metrics)      │                  │
-│              /metrics       └─────────────────┘                 │
-│                                     │                           │
-│                                     │ PromQL                    │
-│                                     ▼                           │
-│                             ┌─────────────────┐                 │
-│                             │    Grafana      │                 │
-│                             │    :3000        │                 │
-│                             │  (Dashboards)   │                 │
-│                             └─────────────────┘                 │
-│                                                                 │
-│  ┌──────────────┐                                               │
-│  │      k6      │  Load Test                                    │
-│  │  (on-demand) │───────────▶ Backend :8000                     │
-│  └──────────────┘                                               │
-└─────────────────────────────────────────────────────────────────┘
-
-External Access:
-  http://localhost:80      → Frontend UI
-  http://localhost:8000    → Backend API
-  http://localhost:9090    → Prometheus UI
-  http://localhost:3000    → Grafana Dashboard
 ```
 
 ### 1.3 Komunikasi Antar Komponen
@@ -218,26 +169,6 @@ volumes:
   ticket-db:       # Persistent database storage
 ```
 
-**Deployment Steps**:
-```bash
-# 1. Build dan start semua services
-docker-compose up -d --build
-
-# 2. Verifikasi health
-docker-compose ps
-
-# 3. Initialize database & event
-curl -X POST http://localhost:8000/setup \
-  -H "Content-Type: application/json" \
-  -d '{"event_name":"Concert Coldplay","total_tickets":1000}'
-
-# 4. Run load test
-docker exec ticket-k6 k6 run --vus 100 --duration 30s /scripts/load-test.js
-
-# 5. Access monitoring
-# Grafana: http://localhost:3000/d/ticket-booking-metrics
-```
-
 #### **C. Dependency Management**
 ```
 mariadb (base)
@@ -268,24 +199,6 @@ services:
         reservations:
           cpus: '0.5'
           memory: 256M
-```
-
-### 1.5 Environment Configuration
-
-**Backend (.env)**:
-```bash
-DB_HOST=mariadb
-DB_PORT=3306
-DB_USER=ticket_user
-DB_PASSWORD=ticket_pass
-DB_NAME=ticket_booking
-```
-
-**Secrets Management**: Environment variables (Docker secrets untuk production)
-
----
-
-## 📊 2. METRIK OBSERVABILITY (8 Metrik Penting)
 
 ---
 
