@@ -83,7 +83,6 @@ Sistem pemesanan tiket konser berbasis cloud-native yang dirancang untuk menanga
   - Alerting (future)
   - Query builder
 - **Port**: 3000
-- **Credentials**: admin/admin
 - **Dashboards**: Pre-configured 7-panel dashboard
 
 #### **E. Load Testing**
