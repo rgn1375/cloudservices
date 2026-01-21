@@ -3,18 +3,17 @@
 **Online Exam Cloud Services**  
 **Topik: Concerts Event Ticketing System**
 
-## 📋 Executive Summary
+## Executive Summary
 
 Sistem pemesanan tiket konser berbasis cloud-native yang dirancang untuk menangani beban tinggi dengan observability penuh. Proyek ini mendemonstrasikan:
-- ✅ Arsitektur cloud-native dengan containerization
-- ✅ Implementasi monitoring & observability (Prometheus + Grafana)
-- ✅ Load testing dengan simulasi beban realistis (k6)
-- ✅ Analisis performa dan bottleneck identification
-- ✅ Incident response dan improvement planning
+- Arsitektur cloud-native dengan containerization
+- Implementasi monitoring & observability (Prometheus + Grafana)
+- Load testing dengan simulasi beban realistis (k6)
+- Analisis performa dan bottleneck identification
 
 ---
 
-## 🎯 1. ARSITEKTUR SISTEM CLOUD-NATIVE
+## 1. ARSITEKTUR SISTEM CLOUD-NATIVE
 
 ### 1.1 Komponen Arsitektur
 
@@ -202,7 +201,7 @@ services:
 
 
 
-## 📊 2. METRIK OBSERVABILITY (8 Metrik Penting)
+##  2. METRIK OBSERVABILITY
 
 ### 2.1 Tabel Metrik & Justifikasi
 
@@ -394,7 +393,7 @@ sum(rate(booking_attempts_total{status="success"}[1m])) / sum(rate(booking_attem
 
 ---
 
-## 🔬 3. SIMULASI BEBAN (LOAD TESTING)
+##  3. SIMULASI BEBAN (LOAD TESTING)
 
 ### 3.1 Setup Event untuk Testing
 
@@ -491,7 +490,7 @@ export const options = {
 
 ---
 
-## 📈 4. HASIL SIMULASI & ANALISIS
+##  4. HASIL SIMULASI & ANALISIS
 
 ### 4.1 Tabel Hasil Simulasi
 
@@ -577,7 +576,7 @@ curl http://localhost:8000/metrics | grep db_query_duration
 
 ---
 
-## 🔍 5. ANALISIS & DIAGNOSA PERFORMA
+##  5. ANALISIS & DIAGNOSA PERFORMA
 
 ### 5.1 Akar Masalah Performa (#1): Race Condition & No Transaction Locking
 
@@ -623,7 +622,7 @@ t1   |                           | SELECT ... → 1 ticket     | 1
 t2   | Check: 1 > 0 ✓           |                           | 1
 t3   |                           | Check: 1 > 0 ✓           | 1
 t4   | UPDATE -1                 |                           | 0
-t5   |                           | UPDATE -1                 | -1 ⚠️
+t5   |                           | UPDATE -1                 | -1 
 ```
 
 #### **D. Dampak pada Metrik**
@@ -672,11 +671,11 @@ def get_db_connection():
 
 @app.post("/book")
 async def book_ticket(request: BookRequest):
-    connection = get_db_connection()  # ⚠️ NEW CONNECTION
+    connection = get_db_connection()  # NEW CONNECTION
     cursor = connection.cursor()
     # ... do work ...
     cursor.close()
-    connection.close()  # ⚠️ CLOSE CONNECTION
+    connection.close()  # CLOSE CONNECTION
 ```
 
 **Impact**:
@@ -788,7 +787,7 @@ async def queue_tracking(request, call_next):
 
 ---
 
-## 💡 6. EVALUASI & IMPROVEMENT PLAN
+##  6. EVALUASI & IMPROVEMENT PLAN
 
 ### 6.1 Keputusan Arsitektur yang Tepat
 
@@ -1121,12 +1120,12 @@ stddev_over_time(http_request_duration_seconds{quantile="0.95"}[5m]) < 0.5
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 ├── docker-compose.yml      # Orchestration file
 └── README.md              # This file
 ```
 
-## 🚀 Mulai Cepat
+##  Mulai Cepat
 
 ### Prasyarat
 - Docker & Docker Compose sudah terinstal
@@ -1168,7 +1167,7 @@ curl -X POST http://localhost:8000/setup \
 | **Prometheus** | http://localhost:9090 | Tidak ada |
 | **Grafana** | http://localhost:3000 | admin/admin |
 
-## 🎫 API Endpoints
+##  API Endpoints
 
 ### POST /setup
 Reset dan inisialisasi event dengan tiket
@@ -1200,7 +1199,7 @@ Endpoint metrik Prometheus
 curl http://localhost:8000/metrics
 ```
 
-## 🔥 Demonstrasi Race Condition
+##  Demonstrasi Race Condition
 
 ### Masalah
 Endpoint `/book` sengaja diimplementasikan TANPA locking atau transaksi yang tepat. Ini berarti:
@@ -1232,22 +1231,22 @@ Endpoint `/book` sengaja diimplementasikan TANPA locking atau transaksi yang tep
    - Tiket tersedia negatif atau nol
    - Mendemonstrasikan race condition!
 
-## 📊 Observabilitas
+##  Observabilitas
 
 ### Metrik Komprehensif Tersedia
 
 Aplikasi mengekspos metrik detail untuk monitoring:
 
-1. **📈 Request Per Second (RPS)** - `rate(http_requests_total[1m])`
-2. **⏱️ P95 Response Time** - `histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))`
-3. **❌ Error Rate (4xx/5xx)** - `sum(rate(http_requests_total{status=~"4..|5.."}[1m])) / sum(rate(http_requests_total[1m])) * 100`
-4. **🖥️ Backend CPU Usage** - `backend_cpu_usage_percent`
-5. **💾 Database Latency** - `histogram_quantile(0.95, sum(rate(db_query_duration_seconds_bucket[5m])) by (le, operation))`
-6. **🎫 Tickets Remaining** - `tickets_remaining`
-7. **📋 Booking Success/Failure** - `booking_attempts_total`
-8. **💾 Memory Usage** - `backend_memory_usage_bytes`
-9. **🔄 Concurrent Requests** - `http_requests_inprogress`
-10. **🔌 DB Connection Errors** - `db_connection_errors_total`
+1. ** Request Per Second (RPS)** - `rate(http_requests_total[1m])`
+2. ** P95 Response Time** - `histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))`
+3. ** Error Rate (4xx/5xx)** - `sum(rate(http_requests_total{status=~"4..|5.."}[1m])) / sum(rate(http_requests_total[1m])) * 100`
+4. ** Backend CPU Usage** - `backend_cpu_usage_percent`
+5. ** Database Latency** - `histogram_quantile(0.95, sum(rate(db_query_duration_seconds_bucket[5m])) by (le, operation))`
+6. ** Tickets Remaining** - `tickets_remaining`
+7. ** Booking Success/Failure** - `booking_attempts_total`
+8. ** Memory Usage** - `backend_memory_usage_bytes`
+9. ** Concurrent Requests** - `http_requests_inprogress`
+10. ** DB Connection Errors** - `db_connection_errors_total`
 
 ### Tes Metrik Cepat
 
@@ -1292,8 +1291,6 @@ rate(http_requests_total{method="POST", handler="/book"}[1m])
    - **Response Time (p95)**: `histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, handler))`
    - **CPU Usage**: `backend_cpu_usage_percent`
    - **Database Latency**: `histogram_quantile(0.95, sum(rate(db_query_duration_seconds_bucket[5m])) by (le, operation))`
-
-**📖 For detailed metrics guide, see [METRICS_GUIDE.md](METRICS_GUIDE.md)**
 
 ## 🧪 Load Testing dengan k6
 
@@ -1362,7 +1359,7 @@ docker-compose up -d
    - Tunjukkan performa query database
    - Demonstrasikan dimana lock diperlukan
 
-## 🛠️ Memperbaiki Race Condition (Untuk Diskusi)
+## Memperbaiki Race Condition
 
 Implementasi saat ini bersifat naif. Berikut solusinya:
 
@@ -1388,126 +1385,6 @@ if cursor.rowcount == 0:
 ### Opsi 3: Message Queue
 - Gunakan Redis/RabbitMQ untuk serialisasi request booking
 - Menjamin urutan dan mencegah race condition
-
-## 📝 Lisensi
-
-Ini adalah proyek universitas untuk tujuan pendidikan.
-
-## 👨‍💻 Penulis
-
-Dibuat untuk demonstrasi mata kuliah Arsitektur Cloud Native.
-
----
-
-**Catatan**: Sistem ini sengaja mengandung race condition untuk tujuan pendidikan. JANGAN gunakan di production tanpa mekanisme sinkronisasi yang tepat!
-
----
-
-##  7. STRUKTUR PROYEK & DEPLOYMENT
-
-### 7.1 Struktur Direktori
-
-```
-cloudservices/
- backend/
-    main.py                    # FastAPI application (363 lines)
-    requirements.txt           # Python dependencies
-    Dockerfile                 # Backend container image
- frontend/
-    index.html                 # Bootstrap 5 UI
-    nginx.conf                 # Nginx reverse proxy config
- prometheus/
-    prometheus.yml             # Scrape config (5s interval)
- grafana/
-    provisioning/
-       datasources/
-           prometheus.yml     # Auto datasource config
-    dashboards/
-        ticket-booking-dashboard.json  # Pre-built dashboard
- k6/
-    load-test.js               # Load testing scenarios
- docker-compose.yml             # Orchestration configuration
- create-dashboard.ps1           # Dashboard provisioning script
- test-metrics.ps1               # Quick test script
- README.md                      # This comprehensive documentation
-```
-
-### 7.2 Quick Start Guide
-
-#### **A. Prerequisites**
-```powershell
-# Check requirements
-docker --version          # Docker 20.10+
-docker-compose --version  # Compose 2.0+
-curl --version           # For API testing
-```
-
-#### **B. Deploy Full Stack**
-```powershell
-# 1. Clone & navigasi
-cd G:\App\cloudservices
-
-# 2. Jalankan semua service (build + run)
-docker-compose up -d --build
-
-# 3. Tunggu health check (30 detik)
-Start-Sleep -Seconds 30
-
-# 4. Verifikasi semua service berjalan
-docker-compose ps
-
-# Output yang diharapkan:
-# NAME               STATUS              PORTS
-# ticket-backend     Up (healthy)        0.0.0.0:8000->8000/tcp
-# ticket-frontend    Up                  0.0.0.0:80->80/tcp
-# ticket-mariadb     Up (healthy)        3306/tcp
-# ticket-prometheus  Up                  0.0.0.0:9090->9090/tcp
-# ticket-grafana     Up                  0.0.0.0:3000->3000/tcp
-# ticket-k6          Up                  (on-demand)
-```
-
-#### **C. Inisialisasi Event**
-```powershell
-# Setup event konser dengan 5000 tiket
-$body = @{
-    event_name = "Concert Metallica Jakarta"
-    total_tickets = 5000
-} | ConvertTo-Json
-
-curl.exe -X POST http://localhost:8000/setup `
-  -H "Content-Type: application/json" `
-  -d $body
-
-# Response:
-# {"message":"Event setup successful","event_id":1,"event_name":"Concert Metallica Jakarta","total_tickets":5000}
-```
-
-#### **D. Buat Dashboard Grafana**
-```powershell
-# Otomatis buat dashboard via API
-.\create-dashboard.ps1
-
-# Output:
-# Dashboard URL: http://localhost:3000/d/ticket-booking-metrics
-```
-
-#### **E. Jalankan Load Test**
-```powershell
-# Beban Normal (50 VUs)
-docker exec ticket-k6 k6 run --vus 50 --duration 60s /scripts/load-test.js
-
-# Beban Tinggi (300 VUs)
-docker exec ticket-k6 k6 run --vus 300 --duration 30s /scripts/load-test.js
-```
-
-#### **F. Akses Monitoring**
-```
-Frontend:    http://localhost          (UI Booking)
-Backend API: http://localhost:8000     (FastAPI docs di /docs)
-Prometheus:  http://localhost:9090     (Metrik & query)
-Grafana:     http://localhost:3000     (Dashboard: admin/admin)
-             > /d/ticket-booking-metrics
-```
 
 ---
 
