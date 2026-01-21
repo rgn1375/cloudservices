@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coldplay Concert - Ticket Booking</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        .main-container {
+            max-width: 700px;
+            margin: 40px auto;
+        }
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e0e0e0;
+        }
+        .concert-header {
+            background: #2c3e50;
+            color: #ffffff;
+            padding: 30px;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+        }
+        .concert-header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        .concert-header h3 {
+            font-size: 1.2rem;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+        .concert-header p {
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+        .ticket-status {
+            background: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .ticket-status h2 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .remaining-tickets {
+            font-size: 3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 15px 0;
+        }
+        .form-control {
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        .form-control:focus {
+            border-color: #2c3e50;
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+        }
+        .btn-buy {
+            background: #2c3e50;
+            border: none;
+            padding: 12px 40px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .btn-buy:hover {
+            background: #34495e;
+        }
+        .btn-setup {
+            background: #ecf0f1;
+            color: #2c3e50;
+            border: 1px solid #d0d0d0;
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .btn-setup:hover {
+            background: #dfe4e6;
+        }
+        .btn-info {
+            background: #ecf0f1;
+            color: #2c3e50;
+            border: 1px solid #d0d0d0;
+        }
+        .btn-info:hover {
+            background: #dfe4e6;
+        }
+        .log-area {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+            font-size: 0.85rem;
+        }
+        .log-area strong {
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .log-entry {
+            padding: 6px 10px;
+            margin: 4px 0;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.8rem;
+        }
+        .log-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 3px solid #4caf50;
+        }
+        .log-error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 3px solid #f44336;
+        }
+        .log-info {
+            background: #e3f2fd;
+            color: #1565c0;
+            border-left: 3px solid #2196f3;
+        }
+        .spinner-border {
+            display: none;
+        }
+        .loading .spinner-border {
+            display: inline-block;
+        }
+        .footer-links {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e0e0e0;
+        }
+        .footer-links p {
+            margin: 0;
+            color: #555;
+            font-size: 0.9rem;
+        }
+        .footer-links a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="card">
+            <div class="concert-header">
+                <h1>Coldplay Concert</h1>
+                <h3>Live in Jakarta</h3>
+                <p class="mb-0">June 15, 2026 · Gelora Bung Karno Stadium</p>
+            </div>
+            
+            <div class="ticket-status">
+                <h2>Tickets Remaining</h2>
+                <div class="remaining-tickets" id="ticketCount">
+                    <span class="spinner-border text-primary" role="status"></span>
+                    <span id="ticketNumber">-</span>
+                </div>
+                
+                <div class="mb-3">
+                    <input type="number" class="form-control form-control-lg text-center" 
+                           id="userId" placeholder="Enter your User ID" 
+                           value="1001" min="1">
+                </div>
+                
+                <button class="btn btn-primary btn-buy mb-3" id="buyButton" onclick="buyTicket()">
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    Buy Ticket
+                </button>
+                
+                <div class="mt-3">
+                    <button class="btn btn-secondary btn-setup me-2" onclick="setupEvent()">
+                        Reset Event (100 tickets)
+                    </button>
+                    <button class="btn btn-info btn-setup" onclick="refreshStatus()">
+                        Refresh Status
+                    </button>
+                </div>
+                
+                <div class="log-area" id="logArea">
+                    <strong>Activity Log</strong>
+                    <div id="logEntries"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-links text-center mt-3">
+            <p>
+                <strong>Quick Links:</strong>
+                <a href="http://localhost:8000/docs" class="ms-2" target="_blank">API Docs</a> ·
+                <a href="http://localhost:9090" class="ms-2" target="_blank">Prometheus</a> ·
+                <a href="http://localhost:3000" class="ms-2" target="_blank">Grafana</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        let currentEventId = null;  // Store current event ID dynamically
+        
+        // Load status on page load
+        window.addEventListener('load', () => {
+            refreshStatus();
+            addLog('info', 'Application loaded. Ready to book tickets!');
+        });
+        
+        // Auto-refresh status every 2 seconds
+        setInterval(refreshStatus, 2000);
+        
+        function addLog(type, message) {
+            const logEntries = document.getElementById('logEntries');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logEntries.insertBefore(logEntry, logEntries.firstChild);
+            
+            // Keep only last 20 entries
+            while (logEntries.children.length > 20) {
+                logEntries.removeChild(logEntries.lastChild);
+            }
+        }
+        
+        async function refreshStatus() {
+            try {
+                const response = await fetch(`${API_URL}/status`);
+                const data = await response.json();
+                
+                if (data.events && data.events.length > 0) {
+                    const event = data.events[0];
+                    currentEventId = event.id;  // Update current event ID
+                    document.getElementById('ticketNumber').textContent = event.available_tickets;
+                    
+                    // Update color based on availability
+                    const ticketCount = document.getElementById('ticketCount');
+                    if (event.available_tickets === 0) {
+                        ticketCount.style.color = '#c62828';
+                    } else if (event.available_tickets < 10) {
+                        ticketCount.style.color = '#e65100';
+                    } else {
+                        ticketCount.style.color = '#2c3e50';
+                    }
+                } else {
+                    document.getElementById('ticketNumber').textContent = '?';
+                    currentEventId = null;
+                    addLog('info', 'No event found. Please setup the event first.');
+                }
+            } catch (error) {
+                console.error('Error fetching status:', error);
+                document.getElementById('ticketNumber').textContent = 'ERROR';
+                addLog('error', `Failed to fetch status: ${error.message}`);
+            }
+        }
+        
+        async function buyTicket() {
+            const button = document.getElementById('buyButton');
+            const userId = document.getElementById('userId').value;
+            
+            if (!userId || userId < 1) {
+                addLog('error', 'Please enter a valid User ID');
+                return;
+            }
+            
+            if (!currentEventId) {
+                addLog('error', 'No event available. Please setup an event first.');
+                return;
+            }
+            
+            button.classList.add('loading');
+            button.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_URL}/book`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: parseInt(userId),
+                        event_id: currentEventId  // Use dynamic event ID
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addLog('success', `Success! Ticket booked for User #${userId}. Remaining: ${data.remaining_tickets}`);
+                    refreshStatus();
+                } else {
+                    addLog('error', `Failed: ${data.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error booking ticket:', error);
+                addLog('error', `Error: ${error.message}`);
+            } finally {
+                button.classList.remove('loading');
+                button.disabled = false;
+            }
+        }
+        
+        async function setupEvent() {
+            addLog('info', 'Setting up new event...');
+            
+            try {
+                const response = await fetch(`${API_URL}/setup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        event_name: 'Coldplay Concert - Jakarta',
+                        total_tickets: 100
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addLog('success', `Event setup complete! ${data.total_tickets} tickets available.`);
+                    refreshStatus();
+                } else {
+                    addLog('error', `Setup failed: ${data.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error setting up event:', error);
+                addLog('error', `Error: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>

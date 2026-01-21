@@ -1,0 +1,275 @@
+# Create dashboard via Grafana API
+$dashboard = @{
+    uid = "ticket-booking-metrics"
+    title = "Concert Ticket Booking - Metrics Dashboard"
+    tags = @("ticket-booking", "performance", "monitoring")
+    timezone = "browser"
+    editable = $true
+    graphTooltip = 1
+    refresh = "5s"
+    time = @{
+        from = "now-15m"
+        to = "now"
+    }
+    panels = @(
+        @{
+            id = 1
+            title = "Requests Per Second (RPS)"
+            type = "timeseries"
+            gridPos = @{h = 8; w = 12; x = 0; y = 0}
+            datasource = @{type = "prometheus"; uid = "PBFA97CFB590B2093"}
+            targets = @(
+                @{
+                    expr = "sum(rate(http_requests_total[1m])) by (handler)"
+                    legendFormat = "{{handler}}"
+                    refId = "A"
+                }
+            )
+            fieldConfig = @{
+                defaults = @{
+                    unit = "reqps"
+                }
+            }
+        },
+        @{
+            id = 2
+            title = "P95 Response Time"
+            type = "timeseries"
+            gridPos = @{h = 8; w = 12; x = 12; y = 0}
+            datasource = @{type = "prometheus"; uid = "PBFA97CFB590B2093"}
+            targets = @(
+                @{
+                    expr = "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[1m])) by (le, handler))"
+                    legendFormat = "P95 - {{handler}}"
+                    refId = "A"
+                }
+            )
+            fieldConfig = @{
+                defaults = @{
+                    unit = "s"
+                }
+            }
+        },
+        @{
+            id = 3
+            title = "Error Rate (%)"
+            type = "timeseries"
+            gridPos = @{h = 8; w = 8; x = 0; y = 8}
+            datasource = @{type = "prometheus"; uid = "PBFA97CFB590B2093"}
+            targets = @(
+                @{
+                    expr = 'sum(rate(http_requests_total{status=~"4..|5.."}[1m])) / sum(rate(http_requests_total[1m])) * 100 or vector(0)'
+                    legendFormat = "Error Rate"
+                    refId = "A"
+                }
+            )
+            fieldConfig = @{
+                defaults = @{
+                    unit = "percent"
+                    min = 0
+                    max = 100
+                }
+            }
+        },
+        @{
+            id = 4
+            title = "Backend CPU Usage"
+            type = "gauge"
+            gridPos = @{h = 8; w = 8; x = 8; y = 8}
+            datasource = @{type = "prometheus"; uid = "PBFA97CFB590B2093"}
+            targets = @(
+                @{
+                    expr = "backend_cpu_usage_percent"
+                    legendFormat = "CPU"
+                    refId = "A"
+                }
+            )
+            fieldConfig = @{
+                defaults = @{
+                    unit = "percent"
+                    min = 0
+                    max = 100
+                    thresholds = @{
+                        mode = "absolute"
+                        steps = @(
+                            @{value = $null; color = "green"},
+                            @{value = 70; color = "yellow"},
+                            @{value = 90; color = "red"}
+                        )
+                    }
+                }
+            }
+        },
+        @{
+            id = 5
+            title = "Tickets Remaining"
+            type = "stat"
+            gridPos = @{h = 8; w = 8; x = 16; y = 8}
+            datasource = @{type = "prometheus"; uid = "PBFA97CFB590B2093"}
+            targets = @(
+                @{
+                    expr = "tickets_remaining"
+                    legendFormat = "Event {{event_id}}"
+                    refId = "A"
+                }
+            )
+            fieldConfig = @{
+                defaults = @{
+                    thresholds = @{
+                        mode = "absolute"
+                        steps = @(
+                            @{value = $null; color = "red"},
+                            @{value = 10; color = "yellow"},
+                            @{value = 50; color = "green"}
+                        )
+                    }
+                }
+            }
+        },
+        @{
+            id = 6
+            title = "Database Latency (P95)"
+            type = "timeseries"
+            gridPos = @{h = 8; w = 12; x = 0; y = 16}
+            datasource = @{type = "prometheus"; uid = "PBFA97CFB590B2093"}
+            targets = @(
+                @{
+                    expr = "histogram_quantile(0.95, sum(rate(db_query_duration_seconds_bucket[1m])) by (le, operation))"
+                    legendFormat = "{{operation}}"
+                    refId = "A"
+                }
+            )
+            fieldConfig = @{
+                defaults = @{
+                    unit = "s"
+                }
+            }
+        },
+        @{
+            id = 7
+            title = "Booking Attempts"
+            type = "timeseries"
+            gridPos = @{h = 8; w = 12; x = 12; y = 16}
+            datasource = @{type = "prometheus"; uid = "PBFA97CFB590B2093"}
+            targets = @(
+                @{
+                    expr = "sum(rate(booking_attempts_total[1m])) by (status)"
+                    legendFormat = "{{status}}"
+                    refId = "A"
+                }
+            )
+            fieldConfig = @{
+                defaults = @{
+                    unit = "reqps"
+                }
+            }
+        },
+        @{
+            id = 8
+            title = "Memory Usage"
+            type = "timeseries"
+            gridPos = @{h = 8; w = 12; x = 0; y = 24}
+            datasource = @{type = "prometheus"; uid = "PBFA97CFB590B2093"}
+            targets = @(
+                @{
+                    expr = "backend_memory_usage_bytes / 1024 / 1024"
+                    legendFormat = "Memory (MB)"
+                    refId = "A"
+                }
+            )
+            fieldConfig = @{
+                defaults = @{
+                    unit = "decmbytes"
+                }
+            }
+        },
+        @{
+            id = 9
+            title = "Concurrent Requests"
+            type = "timeseries"
+            gridPos = @{h = 8; w = 12; x = 12; y = 24}
+            datasource = @{type = "prometheus"; uid = "PBFA97CFB590B2093"}
+            targets = @(
+                @{
+                    expr = "http_requests_inprogress"
+                    legendFormat = "In Progress"
+                    refId = "A"
+                }
+            )
+            fieldConfig = @{
+                defaults = @{
+                    unit = "short"
+                }
+            }
+        },
+        @{
+            id = 10
+            title = "DB Connection Errors"
+            type = "stat"
+            gridPos = @{h = 4; w = 8; x = 0; y = 32}
+            datasource = @{type = "prometheus"; uid = "PBFA97CFB590B2093"}
+            targets = @(
+                @{
+                    expr = "increase(db_connection_errors_total[5m])"
+                    legendFormat = "Errors (5m)"
+                    refId = "A"
+                }
+            )
+        },
+        @{
+            id = 11
+            title = "Total Requests"
+            type = "stat"
+            gridPos = @{h = 4; w = 8; x = 8; y = 32}
+            datasource = @{type = "prometheus"; uid = "PBFA97CFB590B2093"}
+            targets = @(
+                @{
+                    expr = "sum(http_requests_total)"
+                    legendFormat = "Total"
+                    refId = "A"
+                }
+            )
+        },
+        @{
+            id = 12
+            title = "Success Rate"
+            type = "stat"
+            gridPos = @{h = 4; w = 8; x = 16; y = 32}
+            datasource = @{type = "prometheus"; uid = "PBFA97CFB590B2093"}
+            targets = @(
+                @{
+                    expr = 'sum(rate(http_requests_total{status=~"2.."}[1m])) / sum(rate(http_requests_total[1m])) * 100 or vector(100)'
+                    legendFormat = "Success"
+                    refId = "A"
+                }
+            )
+            fieldConfig = @{
+                defaults = @{
+                    unit = "percent"
+                    decimals = 1
+                }
+            }
+        }
+    )
+}
+
+$body = @{
+    dashboard = $dashboard
+    overwrite = $true
+    folderId = 0
+} | ConvertTo-Json -Depth 20
+
+$headers = @{
+    "Content-Type" = "application/json"
+    "Authorization" = "Basic " + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("admin:admin"))
+}
+
+try {
+    $response = Invoke-RestMethod -Uri "http://localhost:3000/api/dashboards/db" -Method Post -Body $body -Headers $headers
+    Write-Host "Dashboard created successfully!" -ForegroundColor Green
+    Write-Host "URL: http://localhost:3000$($response.url)"
+    $response | ConvertTo-Json
+} catch {
+    Write-Host "Error: $_" -ForegroundColor Red
+    $_.Exception.Response
+}
