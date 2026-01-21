@@ -1,4 +1,4 @@
-# Concert Ticket Booking System
+# Web-based Cloud-native Application (by Sabilillah Ramaniya Widodo - 2702374535)
 
 **Online Exam Cloud Services**  
 **Topik: Concerts Event Ticketing System**
@@ -614,7 +614,7 @@ cursor.execute("""
 ```
 
 **Race Condition Flow**:
-```
+
 Time | User A                    | User B                    | DB Tickets
 -----|---------------------------|---------------------------|----------
 t0   | SELECT ... → 1 ticket     |                           | 1
@@ -623,7 +623,7 @@ t2   | Check: 1 > 0 ✓           |                           | 1
 t3   |                           | Check: 1 > 0 ✓           | 1
 t4   | UPDATE -1                 |                           | 0
 t5   |                           | UPDATE -1                 | -1 
-```
+
 
 #### **D. Dampak pada Metrik**
 - P95 Latency melonjak ke **23.8s** (dari 480ms)
@@ -794,11 +794,11 @@ async def queue_tracking(request, call_next):
 #### **Keputusan #1: Containerization dengan Docker Compose**
 
 **Mengapa Tepat**:
-- ✅ **Portable**: Deploy di Windows/Linux/Mac tanpa masalah
-- ✅ **Reproducible**: `docker-compose up` instant environment
-- ✅ **Isolated**: Setiap service punya network & resources sendiri
-- ✅ **Scalable**: Mudah scale dengan `--scale backend=3`
-- ✅ **Version controlled**: Infrastructure as Code (docker-compose.yml)
+- **Portable**: Deploy di Windows/Linux/Mac tanpa masalah
+- **Reproducible**: `docker-compose up` instant environment
+- **Isolated**: Setiap service punya network & resources sendiri
+- **Scalable**: Mudah scale dengan `--scale backend=3`
+- **Version controlled**: Infrastructure as Code (docker-compose.yml)
 
 **Evidence**:
 - Deploy time: <2 minutes dari scratch
@@ -816,11 +816,11 @@ async def queue_tracking(request, call_next):
 #### **Keputusan #2: Prometheus + Grafana untuk Observability**
 
 **Mengapa Tepat**:
-- ✅ **Industry Standard**: Prometheus adalah de-facto untuk metrics
-- ✅ **Pull-based**: Backend tidak perlu tahu tentang monitoring
-- ✅ **PromQL**: Powerful query language untuk complex analysis
-- ✅ **Low Overhead**: <1% CPU impact pada backend
-- ✅ **Time-series**: Historical analysis & trend detection
+- **Industry Standard**: Prometheus adalah de-facto untuk metrics
+- **Pull-based**: Backend tidak perlu tahu tentang monitoring
+- **PromQL**: Powerful query language untuk complex analysis
+- **Low Overhead**: <1% CPU impact pada backend
+- **Time-series**: Historical analysis & trend detection
 
 **Evidence**:
 - 8 key metrics implemented dengan mudah
@@ -925,7 +925,7 @@ async def get_status():
 ```
 Backend ──┬──▶ Redis (Cache) ──cache miss──▶ MariaDB
           │                                      │
-          └──────cache hit (90%)◀────────────────┘
+          └──────cache hit (90%)◀───────────────┘
 ```
 
 **Dampak**:
@@ -1051,20 +1051,20 @@ spec:
                     │   (Ingress)     │
                     └────────┬────────┘
                              │
-           ┌─────────────────┼─────────────────┐
-           │                 │                 │
+           ┌─────────────────┼───────────────┐
+           │                 │               │
     ┌──────▼──────┐  ┌──────▼──────┐  ┌──────▼──────┐
     │  Backend    │  │  Backend    │  │  Backend    │
     │   Pod 1     │  │   Pod 2     │  │   Pod 3-20  │
     │  (Always)   │  │  (Always)   │  │  (Auto)     │
     └──────┬──────┘  └──────┬──────┘  └──────┬──────┘
-           │                 │                 │
-           └─────────────────┼─────────────────┘
-                             │
-                      ┌──────▼──────┐
-                      │   MariaDB   │
-                      │  (StatefulSet)
-                      └─────────────┘
+           │                │               │
+           └────────────────┼───────────────┘
+                            │
+                      ┌─────▼──────┐
+                      │   MariaDB  │
+                      │(StatefulSet)
+                      └────────────┘
 ```
 
 **Dampak**:
@@ -1119,11 +1119,6 @@ stddev_over_time(http_request_duration_seconds{quantile="0.95"}[5m]) < 0.5
 - **Multi-cloud**: Portability (GKE, EKS, AKS)
 
 ---
-
-##  Project Structure
-├── docker-compose.yml      # Orchestration file
-└── README.md              # This file
-```
 
 ##  Mulai Cepat
 
@@ -1229,7 +1224,6 @@ Endpoint `/book` sengaja diimplementasikan TANPA locking atau transaksi yang tep
 4. **Hasil yang Diharapkan**: 
    - Lebih dari 100 booking tercatat di database
    - Tiket tersedia negatif atau nol
-   - Mendemonstrasikan race condition!
 
 ##  Observabilitas
 
@@ -1280,18 +1274,6 @@ histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
 rate(http_requests_total{method="POST", handler="/book"}[1m])
 ```
 
-### Dashboard Grafana
-
-1. Login ke Grafana: http://localhost:3000 (admin/admin)
-2. Datasource Prometheus sudah terkonfigurasi
-3. **Dashboard pre-built otomatis dimuat**: "Concert Ticket Booking - Comprehensive Metrics"
-4. Atau buat panel kustom dengan query berikut:
-   - **Request Rate**: `sum(rate(http_requests_total[1m])) by (handler)`
-   - **Error Rate**: `sum(rate(http_requests_total{status=~"4..|5.."}[1m])) / sum(rate(http_requests_total[1m])) * 100`
-   - **Response Time (p95)**: `histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, handler))`
-   - **CPU Usage**: `backend_cpu_usage_percent`
-   - **Database Latency**: `histogram_quantile(0.95, sum(rate(db_query_duration_seconds_bucket[5m])) by (le, operation))`
-
 ## 🧪 Load Testing dengan k6
 
 ### Tes Dasar
@@ -1299,17 +1281,17 @@ rate(http_requests_total{method="POST", handler="/book"}[1m])
 docker exec -it ticket-k6 k6 run /scripts/load-test.js
 ```
 
-### Tes Kustom (100 pengguna bersamaan)
+### Tes Kustom
 ```bash
 docker exec -it ticket-k6 k6 run --vus 100 --duration 30s /scripts/load-test.js
 ```
 
-### Tes Agresif (untuk memicu race condition)
+### Tes Agresif
 ```bash
 docker exec -it ticket-k6 k6 run --vus 200 --duration 10s /scripts/load-test.js
 ```
 
-## 🔧 Pemecahan Masalah
+## Pemecahan Masalah
 
 ### Service tidak berjalan
 ```bash
@@ -1332,32 +1314,6 @@ docker exec -it ticket-mariadb mysql -uroot -proot -e "SHOW DATABASES;"
 docker-compose down -v
 docker-compose up -d
 ```
-
-## 🎓 Untuk Demo Proyek Universitas
-
-### Poin Utama yang Perlu Disorot:
-
-1. **Demo Race Condition**
-   - Tunjukkan implementasi naif dalam kode
-   - Jalankan load test
-   - Buktikan overselling terjadi
-   - Jelaskan cara memperbaiki (transaksi, lock, antrian)
-
-2. **Observabilitas**
-   - Tunjukkan metrik Prometheus
-   - Tampilkan dashboard Grafana
-   - Jelaskan metodologi RED
-
-3. **Arsitektur Cloud Native**
-   - Service terpisah (frontend, backend, database)
-   - Dikontainerisasi dengan Docker
-   - Diorkestrasi dengan Docker Compose
-   - Desain aplikasi stateless
-
-4. **Analisis Bottleneck**
-   - Gunakan Prometheus untuk mengidentifikasi endpoint lambat
-   - Tunjukkan performa query database
-   - Demonstrasikan dimana lock diperlukan
 
 ## Memperbaiki Race Condition
 
