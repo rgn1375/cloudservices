@@ -93,8 +93,6 @@ Sistem pemesanan tiket konser berbasis cloud-native yang dirancang untuk menanga
   - Metrics collection
 - **Execution**: On-demand via Docker
 
-```
-
 ### 1.3 Komunikasi Antar Komponen
 
 #### **A. Frontend ↔ Backend**
@@ -170,7 +168,7 @@ volumes:
 ```
 
 #### **C. Dependency Management**
-```
+
 mariadb (base)
    ↓
 backend (depends_on: mariadb)
@@ -180,15 +178,16 @@ frontend (depends_on: backend)
 prometheus (scrapes backend)
    ↓
 grafana (queries prometheus)
-```
+
 
 **Health Checks**:
 - Backend: HTTP GET `/health` every 10s
 - Database: `mysqladmin ping` every 10s
 - Frontend: TCP port 80 check
 
-#### **D. Resource Limits** (Production-ready)
-```yaml
+#### **D. Resource Limits**
+```
+yaml
 services:
   backend:
     deploy:
@@ -199,8 +198,9 @@ services:
         reservations:
           cpus: '0.5'
           memory: 256M
+```
 
----
+
 
 ## 📊 2. METRIK OBSERVABILITY (8 Metrik Penting)
 
@@ -268,7 +268,7 @@ services:
   - **Sampling Rate**: Setiap 500ms untuk pengukuran akurat
   - **Mengapa cpu_times()**: `cpu_percent()` mengembalikan 0 di container; `cpu_times()` melacak konsumsi CPU proses yang sebenarnya
 - **Pola Kode**:
-  ```python
+  ```
   def cpu_monitor_thread():
       prev_times = process.cpu_times()
       prev_time = time.time()
@@ -375,7 +375,7 @@ services:
 
 ### 2.3 Prometheus Query Examples
 
-```promql
+```
 # 1. RPS per endpoint
 sum by(handler) (rate(http_requests_total[1m]))
 
@@ -398,7 +398,7 @@ sum(rate(booking_attempts_total{status="success"}[1m])) / sum(rate(booking_attem
 
 ### 3.1 Setup Event untuk Testing
 
-```bash
+```
 # Initialize event dengan 5000 tickets
 curl -X POST http://localhost:8000/setup \
   -H "Content-Type: application/json" \
@@ -414,7 +414,7 @@ curl -X POST http://localhost:8000/setup \
 Simulasi traffic normal pada hari biasa (non-peak hours) dengan user organik yang melakukan booking secara bertahap.
 
 #### **B. Perintah Simulasi**
-```bash
+```
 docker exec ticket-k6 k6 run \
   --vus 50 \
   --duration 60s \
@@ -436,7 +436,7 @@ docker exec ticket-k6 k6 run \
 - **Health**: `GET /health` (5% traffic)
 
 #### **E. k6 Script Configuration**
-```javascript
+```
 export const options = {
   stages: [
     { duration: '10s', target: 50 },   // Ramp up ke 50 users
@@ -456,7 +456,7 @@ export const options = {
 Simulasi flash sale atau presale tiket konser populer dengan traffic spike mendadak (Black Friday scenario).
 
 #### **B. Perintah Simulasi**
-```bash
+```
 docker exec ticket-k6 k6 run \
   --vus 300 \
   --duration 30s \
@@ -477,7 +477,7 @@ docker exec ticket-k6 k6 run \
 - **Secondary**: `GET /status` (5% traffic)
 
 #### **E. k6 Script Configuration**
-```javascript
+```
 export const options = {
   stages: [
     { duration: '30s', target: 300 },  // Immediate spike to 300 users
@@ -527,7 +527,7 @@ export const options = {
 1. Buka http://localhost:9090
 2. Execute queries di "Graph" tab:
 
-```promql
+```
 # RPS
 sum(rate(http_requests_total[1m]))
 
@@ -545,7 +545,7 @@ histogram_quantile(0.95, rate(db_query_duration_seconds_bucket{operation="select
 ```
 
 #### **C. Via Endpoint /metrics**
-```bash
+```
 # Metrik mentah - semua custom metric
 curl http://localhost:8000/metrics | grep -E "backend_cpu|backend_memory|tickets_remaining|booking_attempts"
 
@@ -594,7 +594,7 @@ Sistem mengalami **overselling** tickets pada beban tinggi - menjual lebih banya
   - Failed: 16,817 (404 errors sebelum event setup)
 
 #### **C. Root Cause Analysis**
-```python
+```
 # NAIVE IMPLEMENTATION (backend/main.py)
 # Step 1: Check availability (NO LOCK!)
 cursor.execute("SELECT available_tickets FROM events WHERE id = %s", (event_id,))
@@ -633,7 +633,7 @@ t5   |                           | UPDATE -1                 | -1 ⚠️
 
 #### **E. Solusi yang Disarankan**
 1. **Database-level locking**:
-   ```sql
+   ```
    SELECT available_tickets FROM events WHERE id = ? FOR UPDATE;
    ```
 2. **Optimistic locking** dengan version column
@@ -662,7 +662,7 @@ Backend membuka **new database connection per request**, causing:
 - **Connection time** = **~46% dari total DB time**
 
 #### **C. Root Cause Analysis**
-```python
+```
 # CURRENT (backend/main.py)
 def get_db_connection():
     return mysql.connector.connect(
@@ -691,7 +691,7 @@ async def book_ticket(request: BookRequest):
 
 #### **E. Solusi yang Disarankan**
 1. **Connection pooling** dengan SQLAlchemy:
-   ```python
+   ```
    engine = create_engine(
        "mysql+pymysql://...",
        pool_size=20,
@@ -728,7 +728,7 @@ db_connection_wait_duration_seconds
 ```
 
 **Implementation**:
-```python
+```
 from prometheus_client import Gauge
 
 db_pool_size = Gauge('db_connection_pool_size', 'Connection pool size')
@@ -750,7 +750,7 @@ db_pool_available = Gauge('db_connection_pool_available', 'Available connections
 - Predict system capacity
 
 **Metrics yang Dibutuhkan**:
-```promql
+```
 # Queue depth
 http_request_queue_depth
 
@@ -762,7 +762,7 @@ worker_utilization_percent
 ```
 
 **Implementation**:
-```python
+```
 from prometheus_client import Histogram, Gauge
 
 request_queue_depth = Gauge('http_request_queue_depth', 'Requests waiting')
@@ -785,159 +785,6 @@ async def queue_tracking(request, call_next):
 **Analysis Value**:
 - Correlate dengan CPU usage untuk horizontal scaling decisions
 - Identify if bottleneck is CPU vs I/O vs locking
-
----
-
-### 5.4 Incident Response Flow (P95 Latency & Error Rate Spike)
-
-#### **🚨 INCIDENT RESPONSE PLAYBOOK**
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ PHASE 1: DETECTION & TRIAGE (0-5 minutes)                  │
-└─────────────────────────────────────────────────────────────┘
-
-Alert Triggered:
-✓ Grafana Alert: "P95 Latency > 3s for 5 minutes"
-✓ Grafana Alert: "Error Rate > 5% for 2 minutes"
-
-Immediate Actions:
-1. Check Grafana dashboard: http://localhost:3000/d/ticket-booking-metrics
-2. Verify alert is real (not false positive)
-3. Assess impact:
-   - Check RPS: Is traffic spiking?
-   - Check Error Rate: What % of users affected?
-   - Check Tickets Remaining: Business impact?
-4. Open incident ticket: "P1 - High Latency & Errors"
-5. Notify on-call team via PagerDuty/Slack
-
-┌─────────────────────────────────────────────────────────────┐
-│ PHASE 2: IMMEDIATE MITIGATION (5-15 minutes)               │
-└─────────────────────────────────────────────────────────────┘
-
-Quick Checks:
-□ Backend healthy? → curl http://localhost:8000/health
-□ Database healthy? → docker exec ticket-mariadb mysqladmin ping
-□ Disk space? → df -h
-□ Memory? → docker stats
-
-Mitigation Options (choose based on symptoms):
-
-IF CPU > 90%:
-  → Scale horizontally: docker-compose up -d --scale backend=3
-  
-IF Memory > 90%:
-  → Restart backend: docker-compose restart backend
-  → Check for memory leak: docker stats --no-stream
-  
-IF DB Latency > 500ms:
-  → Check slow queries: SHOW PROCESSLIST;
-  → Kill long-running queries: KILL <query_id>;
-  → Restart database (last resort): docker-compose restart mariadb
-  
-IF Error Rate > 10%:
-  → Check logs: docker logs ticket-backend --tail 100
-  → Identify error pattern (404, 400, 500?)
-  → Rollback recent deployment if needed
-
-Temporary Traffic Control:
-→ Enable rate limiting at nginx level
-→ Return 503 "Service Unavailable" for non-critical endpoints
-→ Prioritize /book endpoint over /status
-
-┌─────────────────────────────────────────────────────────────┐
-│ PHASE 3: ROOT CAUSE ANALYSIS (15-60 minutes)               │
-└─────────────────────────────────────────────────────────────┘
-
-Prometheus Queries for RCA:
-
-1. Identify traffic pattern:
-   sum by(handler) (rate(http_requests_total[5m]))
-   
-2. Check for specific endpoint issues:
-   histogram_quantile(0.95, sum by(handler, le) 
-     (rate(http_request_duration_seconds_bucket[5m])))
-   
-3. Database operation breakdown:
-   sum by(operation, table) (rate(db_query_duration_seconds_count[5m]))
-   
-4. Error type distribution:
-   sum by(status) (rate(http_requests_total{status=~"4..|5.."}[5m]))
-   
-5. Concurrent request pattern:
-   max_over_time(http_requests_inprogress{handler="/book"}[5m])
-
-Correlation Analysis:
-- High RPS → High CPU → High Latency? → Need horizontal scaling
-- High RPS → Low CPU → High Latency? → Database bottleneck
-- High Concurrent Requests → High Latency? → Locking contention
-- Growing Memory → High GC time? → Memory leak
-
-Check Application Logs:
-docker logs ticket-backend --since 30m | grep -E "ERROR|Exception"
-
-Check Database Metrics:
-SHOW STATUS LIKE 'Threads_connected';
-SHOW STATUS LIKE 'Slow_queries';
-SHOW GLOBAL STATUS LIKE 'Questions';
-
-┌─────────────────────────────────────────────────────────────┐
-│ PHASE 4: PERMANENT FIX (1-48 hours)                        │
-└─────────────────────────────────────────────────────────────┘
-
-Based on RCA, implement fixes:
-
-Race Condition Fix:
-→ Add database-level locking (FOR UPDATE)
-→ Implement optimistic locking
-→ Add integration tests
-
-Connection Pool Fix:
-→ Implement SQLAlchemy with connection pooling
-→ Configure pool_size=20, max_overflow=10
-→ Monitor new metrics: db_connection_pool_utilization
-
-Scale Infrastructure:
-→ Horizontal: Add backend replicas
-→ Vertical: Increase CPU/memory limits
-→ Database: Add read replicas
-
-Code Optimization:
-→ Add caching layer (Redis) for /status endpoint
-→ Reduce time.sleep(0.01) in booking logic
-→ Async database queries
-
-┌─────────────────────────────────────────────────────────────┐
-│ PHASE 5: POST-MORTEM (24-72 hours)                         │
-└─────────────────────────────────────────────────────────────┘
-
-Document incident:
-1. Timeline of events
-2. Impact metrics:
-   - Duration: X minutes
-   - Affected users: Y requests failed
-   - Revenue impact: Z bookings lost
-3. Root cause: [Race condition / Connection exhaustion / ...]
-4. Actions taken
-5. Lessons learned
-6. Follow-up tasks
-
-Preventive Measures:
-□ Add alerting for leading indicators
-□ Improve load testing scenarios
-□ Add chaos engineering tests
-□ Update runbooks
-□ Conduct training session
-```
-
-#### **Key Metrics to Monitor During Incident**
-
-| Phase | Primary Metrics | Secondary Metrics |
-|-------|----------------|-------------------|
-| **Detection** | P95 Latency, Error Rate | RPS, Concurrent Requests |
-| **Mitigation** | Error Rate, Success Rate | CPU, Memory |
-| **RCA** | All 8 core metrics | DB connections, Queue depth |
-| **Validation** | P95 Latency, Error Rate | Tickets remaining, Success rate |
 
 ---
 
@@ -1728,13 +1575,3 @@ Status Saat Ini: **60% Siap Production**
 - [ ] Penanganan error & logika retry
 - [ ] Rate limiting
 - [ ] Autentikasi/otorisasi API
-
----
-
-**Terakhir Diperbarui**: 21 Januari 2026  
-**Versi**: 1.1.0  
-**Status**:  Terdokumentasi Lengkap & Teruji  
-**Pembaruan Terkini**:
-- Implementasi monitoring CPU diperbarui menggunakan background thread dengan `cpu_times()` untuk metrik container yang akurat
-- Frontend sekarang mengambil `event_id` secara dinamis dari endpoint `/status`
-- Dashboard Grafana dibuat via REST API dengan datasource UID yang benar
