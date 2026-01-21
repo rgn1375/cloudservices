@@ -18,8 +18,6 @@ Sistem pemesanan tiket konser berbasis cloud-native yang dirancang untuk menanga
 
 ### 1.1 Komponen Arsitektur
 
-### 1.1 Komponen Arsitektur
-
 #### **A. Frontend Layer**
 - **Teknologi**: Nginx Alpine (Static Web Server)
 - **Fungsi**: 
